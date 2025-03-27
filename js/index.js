@@ -14,14 +14,10 @@ document.getElementById("formQLNV").onsubmit = function (event) {
   event.preventDefault();
   let nhanVien = layDuLieuTuForm(event.target);
 
-  // Kiểm tra nếu tài khoản đã tồn tại
-  let index = arrNhanVien.findIndex((nv) => nv.tknv === nhanVien.tknv);
-  if (index !== -1) {
-    setError("tbTKNV", "Tài khoản đã tồn tại.");
-    return;
-  }
+  // Check tài khoản hoặc email đã tồn tại
+  if (!kiemTraTKVaEmailNV(nhanVien)) return;
 
-  // Kiểm tra dữ liệu trước khi thêm nhan viên mới vào
+  // Check dữ liệu trước khi thêm nhan viên mới vào
   if (!validateNhanVien(nhanVien)) return;
 
   arrNhanVien.push(nhanVien);
@@ -29,6 +25,24 @@ document.getElementById("formQLNV").onsubmit = function (event) {
   renderListNhanVien();
   document.getElementById("btnDong").click();
 };
+
+function kiemTraTKVaEmailNV(nhanVien) {
+  // Kiểm tra nếu tài khoản đã tồn tại
+  let index = arrNhanVien.findIndex((nv) => nv.tknv === nhanVien.tknv);
+  if (index !== -1) {
+    setError("tbTKNV", "Tài khoản đã tồn tại.");
+    return false;
+  }
+
+  // Kiểm tra nếu email đã tồn tại
+  let indexEmail = arrNhanVien.findIndex((nv) => nv.email === nhanVien.email);
+  if (indexEmail !== -1) {
+    setError("tbEmail", "Email đã tồn tại.");
+    return false;
+  }
+
+  return true;
+}
 
 // render data
 function renderListNhanVien(arr = arrNhanVien) {
@@ -156,6 +170,15 @@ document.getElementById("btnCapNhat").onclick = function () {
   let msNV = this.getAttribute("data-msnv");
   let form = document.getElementById("formQLNV");
   let nhanVienMoi = layDuLieuTuForm(form);
+
+  // Kiểm tra email trùng khi cập nhật (ngoại trừ email đã có trước đó)
+  let indexEmail = arrNhanVien.findIndex(
+    (nv) => nv.email === nhanVienMoi.email && nv.tknv !== msNV
+  );
+  if (indexEmail !== -1) {
+    setError("tbEmail", "Email đã tồn tại.");
+    return;
+  }
 
   // Kiểm tra điều kiện trước khi cập nhật
   if (!validateNhanVien(nhanVienMoi)) return;
